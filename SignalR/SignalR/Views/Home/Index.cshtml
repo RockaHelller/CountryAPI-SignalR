@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container my-5">
+    <div class="login-area">
+        <input class="form-control username-input" type="text" placeholder="username..."/>
+        <button class="btn btn-success mt-2 login-btn">Login</button>
+    </div>
+    <div class="chat-area mt-3 d-none">
+        Welcome: <span class="username text-success">Novreste</span>
+        <div class="row mt-3">
+            <div class="col-6">
+                <ul class="list-group message-list">
+                </ul>
+            </div>
+            <div class="col-6">
+                <label for="exampleFormControlTextarea1">Your message</label>
+                <textarea class="form-control message" id="exampleFormControlTextarea1" rows="3"></textarea>
+                <button class="btn btn-success mt-2 send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+<script>
+    let connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+    let username = ""
+
+    connection.start().then(function(){
+    }).catch(function(err){
+        console.log(err)
+    })
+
+    connection.on("ReceiveMessage", function (username, message) {
+        let result = `${username} says : ${message}`;
+
+        let elem = `<li class="list-group-item">${result}</li>`;
+
+        document.querySelector(".message-list").innerHTML += elem;
+    })
+
+    document.querySelector(".login-btn").addEventListener("click", function(){
+        if (document.querySelector(".username-input").value.trim() == "")
+        {
+            alert("Don't leave empty");
+            return;
+        }
+        username = document.querySelector(".username-input").value;
+
+        document.querySelector(".login-area").classList.add("d-none")
+
+        document.querySelector(".chat-area").classList.remove("d-none")
+
+        document.querySelector(".username").innerHTML = username;
+    })
+
+
+    document.querySelector(".send-btn").addEventListener("click", function(){
+        if(document.querySelector(".message").value.trim() == ""){
+            alert("Don't leave empty");
+            return;
+        }
+
+        
+
+        let message = document.querySelector(".message").value;
+
+        document.querySelector(".message").value = "";
+
+        connection.invoke("SendMessage", username, message).then(function(){
+
+        }).catch(function (err) {
+            console.log(err)
+        })
+    })
+
+@*<li class="list-group-item">Cras justo odio</li>*@
+</script>
+
